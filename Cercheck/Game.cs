@@ -92,9 +92,10 @@ namespace Cercheck
         /// <returns>Возвращает true, если ход возможен</returns>
         private bool CheckPossibilityOfMove(Point startPoint, Point destinationPoint, bool isWhiteMove)
         {
-            if (startPoint.X < 0 || startPoint.Y < 0 || destinationPoint.X < 0 || destinationPoint.Y < 0)
+            if (startPoint.X < 0 || startPoint.Y < 0 || destinationPoint.X < 0 || destinationPoint.Y < 0
+                || startPoint.X > 7 || startPoint.Y > 7 || destinationPoint.X > 7 || destinationPoint.Y > 7)
                 return false;
-            if(isWhiteMove)
+            if (isWhiteMove)
             {
                 if (!WhiteCheckers.Any(point => point.X == startPoint.X && point.Y == startPoint.Y) || 
                     BlackCheckers.Any(point => point.X == startPoint.X && point.Y == startPoint.Y))
@@ -138,7 +139,8 @@ namespace Cercheck
 
         private bool CheckPossibilityOfMoveNotInteractive(Point startPoint, Point destinationPoint, bool isWhiteMove)
         {
-            if (startPoint.X < 0 || startPoint.Y < 0 || destinationPoint.X < 0 || destinationPoint.Y < 0)
+            if (startPoint.X < 0 || startPoint.Y < 0 || destinationPoint.X < 0 || destinationPoint.Y < 0 
+                || startPoint.X > 7 || startPoint.Y > 7 || destinationPoint.X > 7 || destinationPoint.Y > 7)
                 return false;
             if (isWhiteMove)
             {
@@ -213,6 +215,11 @@ namespace Cercheck
                     return;
                 }
             }
+        }
+
+        public void DoAITurn()
+        {
+            throw new NotImplementedException();
         }
 
         public List<Move> GetAllPossibleMoves(bool isWhiteMove)

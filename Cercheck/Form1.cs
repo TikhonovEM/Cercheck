@@ -70,6 +70,7 @@ namespace Cercheck
             {
                 SecondClick = new Point(e.ColumnIndex, e.RowIndex);
                 Game.MakeMove(FirstClick, SecondClick, true);
+                Game.DoAITurn();
             }
             IsFirstClick = !IsFirstClick;
         }
