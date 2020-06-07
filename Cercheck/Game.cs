@@ -20,11 +20,33 @@ namespace Cercheck
         private Bitmap WhiteChecker = new Bitmap(Image.FromFile("white_el.png"), 60, 60);
         private Bitmap BlackChecker = new Bitmap(Image.FromFile("black_el.png"), 60, 60);
 
+        public Move LastMove { get; set; }
+
+        public List<Move> CurrentPossibleMoves { get; set; }
+
+        public double MaxWeight { get; set; }
+
+        public Game PreviousGameState { get; set; }
+
         private Label WhiteCounter { get; set; }
         private Label BlackCounter { get; set; }
 
         private bool IsWhiteTurn { get; set; } = true;
         public bool IsGameOver { get; set; } = false;
+
+        public Game FullCopy()
+        {
+            Game copy = (Game)this.MemberwiseClone();
+            //this.WhiteCheckers.CopyTo(copy.WhiteCheckers.ToArray());
+            copy.WhiteCheckers = new List<Point>();
+            foreach (var point in WhiteCheckers)
+                copy.WhiteCheckers.Add(new Point(point.X, point.Y));
+            copy.BlackCheckers = new List<Point>();
+            foreach (var point in BlackCheckers)
+                copy.BlackCheckers.Add(new Point(point.X, point.Y));
+            this.CurrentPossibleMoves.CopyTo(copy.CurrentPossibleMoves.ToArray());
+            return copy;
+        }
 
         public Game(DataGridView board, Label whiteCounter, Label blackCounter)
         {
@@ -62,7 +84,7 @@ namespace Cercheck
         /// <param name="startPoint">Текущая позиция шашки</param>
         /// <param name="destinationPoint">Место назначения</param>
         /// <param name="isWhiteMove">Чей ход</param>
-        public void MakeMove(Point startPoint, Point destinationPoint, bool isWhiteMove)
+        public void MakeMove(Point startPoint, Point destinationPoint, bool isWhiteMove, bool isNeedRefresh)
         {
             if(IsGameOver)
             {
@@ -89,7 +111,9 @@ namespace Cercheck
                     WhiteCheckers.Remove(felledChecker);
                     IsWhiteTurn = true;
                 }
-                ArrangeCheckers();
+                LastMove = new Move(startPoint, destinationPoint);
+                if(isNeedRefresh)
+                    ArrangeCheckers();
             }
         }
         /// <summary>
@@ -237,8 +261,9 @@ namespace Cercheck
             {
                 Thread.Sleep(1000);
                 var possibleMoves = GetAllPossibleMoves(false);
-                var move = possibleMoves.GetBestMove();
-                MakeMove(move.StartPoint, move.DestinationPoint, false);
+                var moveAnalyzer = new MoveAnalyzer(possibleMoves, this);
+                var move = moveAnalyzer.GetBestMove();
+                MakeMove(move.StartPoint, move.DestinationPoint, false, true);
             }
         }
 
@@ -253,19 +278,19 @@ namespace Cercheck
                     {
                         var destinationPoint = new Point(checker.X - 2 + i, checker.Y - 2);
                         if (CheckPossibilityOfMoveNotInteractive(checker, destinationPoint, true))
-                            posmoves.Add(new Move(checker, destinationPoint));
+                            posmoves.Add(new Move(checker, destinationPoint, LastMove));
                     }
                     var destinationPointLeft = new Point(checker.X - 2, checker.Y);
                     if (CheckPossibilityOfMoveNotInteractive(checker, destinationPointLeft, true))
-                        posmoves.Add(new Move(checker, destinationPointLeft));
+                        posmoves.Add(new Move(checker, destinationPointLeft, LastMove));
                     var destinationPointRight = new Point(checker.X + 2, checker.Y);
                     if (CheckPossibilityOfMoveNotInteractive(checker, destinationPointRight, true))
-                        posmoves.Add(new Move(checker, destinationPointRight));
+                        posmoves.Add(new Move(checker, destinationPointRight, LastMove));
                     for (var i = 0; i < 5; i += 2)
                     {
                         var destinationPoint = new Point(checker.X - 2 + i, checker.Y + 2);
                         if (CheckPossibilityOfMoveNotInteractive(checker, destinationPoint, true))
-                            posmoves.Add(new Move(checker, destinationPoint));
+                            posmoves.Add(new Move(checker, destinationPoint, LastMove));
                     }
                 }
             }
@@ -277,22 +302,23 @@ namespace Cercheck
                     {
                         var destinationPoint = new Point(checker.X - 2 + i, checker.Y - 2);
                         if (CheckPossibilityOfMoveNotInteractive(checker, destinationPoint, false))
-                            posmoves.Add(new Move(checker, destinationPoint));
+                            posmoves.Add(new Move(checker, destinationPoint, LastMove));
                     }
                     var destinationPointLeft = new Point(checker.X - 2, checker.Y);
                     if (CheckPossibilityOfMoveNotInteractive(checker, destinationPointLeft, false))
-                        posmoves.Add(new Move(checker, destinationPointLeft));
+                        posmoves.Add(new Move(checker, destinationPointLeft, LastMove));
                     var destinationPointRight = new Point(checker.X + 2, checker.Y);
                     if (CheckPossibilityOfMoveNotInteractive(checker, destinationPointRight, false))
-                        posmoves.Add(new Move(checker, destinationPointRight));
+                        posmoves.Add(new Move(checker, destinationPointRight, LastMove));
                     for (var i = 0; i < 5; i += 2)
                     {
                         var destinationPoint = new Point(checker.X - 2 + i, checker.Y + 2);
                         if (CheckPossibilityOfMoveNotInteractive(checker, destinationPoint, false))
-                            posmoves.Add(new Move(checker, destinationPoint));
+                            posmoves.Add(new Move(checker, destinationPoint, LastMove));
                     }
                 }
             }
+            CurrentPossibleMoves = posmoves;
             return posmoves;
         }
     }

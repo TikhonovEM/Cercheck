@@ -69,7 +69,7 @@ namespace Cercheck
             else
             {
                 SecondClick = new Point(e.ColumnIndex, e.RowIndex);
-                Game.MakeMove(FirstClick, SecondClick, true);
+                Game.MakeMove(FirstClick, SecondClick, true, true);
                 Refresh();
                 Game.DoAITurn();
             }
