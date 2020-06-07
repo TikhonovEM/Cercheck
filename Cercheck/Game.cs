@@ -22,6 +22,8 @@ namespace Cercheck
         private Label WhiteCounter { get; set; }
         private Label BlackCounter { get; set; }
 
+        private bool IsWhiteTurn { get; set; } = true;
+
         public Game(DataGridView board, Label whiteCounter, Label blackCounter)
         {
             Board = board;
@@ -89,7 +91,9 @@ namespace Cercheck
         /// <param name="isWhiteMove">Чей ход</param>
         /// <returns>Возвращает true, если ход возможен</returns>
         private bool CheckPossibilityOfMove(Point startPoint, Point destinationPoint, bool isWhiteMove)
-        {            
+        {
+            if (startPoint.X < 0 || startPoint.Y < 0 || destinationPoint.X < 0 || destinationPoint.Y < 0)
+                return false;
             if(isWhiteMove)
             {
                 if (!WhiteCheckers.Any(point => point.X == startPoint.X && point.Y == startPoint.Y) || 
@@ -134,6 +138,8 @@ namespace Cercheck
 
         private bool CheckPossibilityOfMoveNotInteractive(Point startPoint, Point destinationPoint, bool isWhiteMove)
         {
+            if (startPoint.X < 0 || startPoint.Y < 0 || destinationPoint.X < 0 || destinationPoint.Y < 0)
+                return false;
             if (isWhiteMove)
             {
                 if (!WhiteCheckers.Any(point => point.X == startPoint.X && point.Y == startPoint.Y) ||
