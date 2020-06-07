@@ -11,6 +11,7 @@ namespace Cercheck
     {
         public Point StartPoint { get; set; }
         public Point DestinationPoint { get; set; }
+        public double Weight { get; set; } = 0;
         public Move(Point startPoint, Point destinationPoint)
         {
             this.StartPoint = startPoint;

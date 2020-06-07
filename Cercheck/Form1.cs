@@ -62,7 +62,7 @@ namespace Cercheck
 
         private void dataGridView1_CellClick(object sender, DataGridViewCellEventArgs e)
         {
-            if(IsFirstClick)
+            if (IsFirstClick)
             {
                 FirstClick = new Point(e.ColumnIndex, e.RowIndex);
             }
@@ -70,6 +70,7 @@ namespace Cercheck
             {
                 SecondClick = new Point(e.ColumnIndex, e.RowIndex);
                 Game.MakeMove(FirstClick, SecondClick, true);
+                Refresh();
                 Game.DoAITurn();
             }
             IsFirstClick = !IsFirstClick;

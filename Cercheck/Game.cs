@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace Cercheck
 {
@@ -23,6 +24,7 @@ namespace Cercheck
         private Label BlackCounter { get; set; }
 
         private bool IsWhiteTurn { get; set; } = true;
+        public bool IsGameOver { get; set; } = false;
 
         public Game(DataGridView board, Label whiteCounter, Label blackCounter)
         {
@@ -62,6 +64,11 @@ namespace Cercheck
         /// <param name="isWhiteMove">Чей ход</param>
         public void MakeMove(Point startPoint, Point destinationPoint, bool isWhiteMove)
         {
+            if(IsGameOver)
+            {
+                MessageBox.Show("Игра окончена!");
+                return;
+            }
             if (CheckPossibilityOfMove(startPoint, destinationPoint, isWhiteMove))
             {
                 if (isWhiteMove)
@@ -71,6 +78,7 @@ namespace Cercheck
                     var felledCoords = new Point((startPoint.X + destinationPoint.X) / 2, (startPoint.Y + destinationPoint.Y) / 2);
                     var felledChecker = BlackCheckers.Where(p => p.X == felledCoords.X && p.Y == felledCoords.Y).First();
                     BlackCheckers.Remove(felledChecker);
+                    IsWhiteTurn = false;
                 }
                 else
                 {
@@ -79,6 +87,7 @@ namespace Cercheck
                     var felledCoords = new Point((startPoint.X + destinationPoint.X) / 2, (startPoint.Y + destinationPoint.Y) / 2);
                     var felledChecker = WhiteCheckers.Where(p => p.X == felledCoords.X && p.Y == felledCoords.Y).First();
                     WhiteCheckers.Remove(felledChecker);
+                    IsWhiteTurn = true;
                 }
                 ArrangeCheckers();
             }
@@ -188,11 +197,13 @@ namespace Cercheck
             if(WhiteCheckers.Count == 0)
             {
                 MessageBox.Show("Игра окончена. Победили черные");
+                IsGameOver = true;
                 return;
             }
             if (BlackCheckers.Count == 0)
             {
                 MessageBox.Show("Игра окончена. Победили белые");
+                IsGameOver = true;
                 return;
             }
             var whitePosMoves = GetAllPossibleMoves(true).Count;
@@ -202,16 +213,19 @@ namespace Cercheck
                 if (WhiteCheckers.Count > BlackCheckers.Count)
                 {
                     MessageBox.Show("Игра окончена. У обоих сторон не осталось ходов. Победили белые, т.к. у черных меньше фигур");
+                    IsGameOver = true;
                     return;
                 }
                 else if(WhiteCheckers.Count < BlackCheckers.Count)
                 {
                     MessageBox.Show("Игра окончена. У обоих сторон не осталось ходов. Победили черные, т.к. у белых меньше фигур");
+                    IsGameOver = true;
                     return;
                 }
                 else
                 {
                     MessageBox.Show("Игра окончена. У обоих сторон не осталось ходов. Ничья.");
+                    IsGameOver = true;
                     return;
                 }
             }
@@ -219,7 +233,13 @@ namespace Cercheck
 
         public void DoAITurn()
         {
-            throw new NotImplementedException();
+            if (!IsWhiteTurn && !IsGameOver)
+            {
+                Thread.Sleep(1000);
+                var possibleMoves = GetAllPossibleMoves(false);
+                var move = possibleMoves.GetBestMove();
+                MakeMove(move.StartPoint, move.DestinationPoint, false);
+            }
         }
 
         public List<Move> GetAllPossibleMoves(bool isWhiteMove)
