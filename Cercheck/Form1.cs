@@ -42,7 +42,7 @@ namespace Cercheck
                     flag = !flag;
                 }
             }
-            Game = new Game(this.dataGridView1, this.label3, this.label4);
+            Game = new Game(this.dataGridView1, this.label3, this.label4, this.label5);
             var isWhite = true;
             for(var i = 2; i < 6; i++)
             {

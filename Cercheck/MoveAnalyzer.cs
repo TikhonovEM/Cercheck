@@ -25,9 +25,6 @@ namespace Cercheck
             // Первый ход черных
             foreach(var blackMoveLevel1 in Moves)
             {
-                /*var gameAfterBlackMoveLevel1 = Game.FullCopy();
-                gameAfterBlackMoveLevel1.MakeMove(blackMoveLevel1.StartPoint, blackMoveLevel1.DestinationPoint, false, false);
-                whiteMovesLevel1.AddRange(gameAfterBlackMoveLevel1.GetAllPossibleMoves(true)); */
                 var gameAfterBlackMoveLevel1 = Game.FullCopy();
                 gameAfterBlackMoveLevel1.MakeMove(blackMoveLevel1.StartPoint, blackMoveLevel1.DestinationPoint, false, false);
                 gameAfterBlackMoveLevel1.PreviousGameState = Game;
@@ -77,27 +74,65 @@ namespace Cercheck
                 {
                     move.Weight = CalculateWeight(move, gameAfterwhiteMovesLevel2);
                 }
-                gameAfterwhiteMovesLevel2.MaxWeight = allpossiblemoves.Count > 0 ? allpossiblemoves.Max(x => x.Weight) : -10.0;
+                gameAfterwhiteMovesLevel2.MaxWeight = allpossiblemoves.Count > 0 ? allpossiblemoves.Max(x => x.Weight) : 1000.0;
             }
             foreach (var gameAfterblackMovesLevel2 in gamesAfterblackMovesLevel2)
             {
-                gameAfterblackMovesLevel2.MaxWeight = gamesAfterwhiteMovesLevel2.Where(x => x.PreviousGameState == gameAfterblackMovesLevel2).Min(x => x.MaxWeight);
+                gameAfterblackMovesLevel2.MaxWeight = gamesAfterwhiteMovesLevel2.Any(x => x.PreviousGameState == gameAfterblackMovesLevel2) ? 
+                    gamesAfterwhiteMovesLevel2.Where(x => x.PreviousGameState == gameAfterblackMovesLevel2).Min(x => x.MaxWeight) : 1000.0;
             }
             foreach (var gameAfterwhiteMovesLevel1 in gamesAfterwhiteMovesLevel1)
             {
-                gameAfterwhiteMovesLevel1.MaxWeight = gamesAfterblackMovesLevel2.Where(x => x.PreviousGameState == gameAfterwhiteMovesLevel1).Max(x => x.MaxWeight);
+                gameAfterwhiteMovesLevel1.MaxWeight = gamesAfterblackMovesLevel2.Any(x => x.PreviousGameState == gameAfterwhiteMovesLevel1) ? 
+                    gamesAfterblackMovesLevel2.Where(x => x.PreviousGameState == gameAfterwhiteMovesLevel1).Max(x => x.MaxWeight) : 1000.0;
             }
             foreach (var gameAfterblackMovesLevel1 in gamesAfterblackMovesLevel1)
             {
-                gameAfterblackMovesLevel1.MaxWeight = gamesAfterwhiteMovesLevel1.Where(x => x.PreviousGameState == gameAfterblackMovesLevel1).Min(x => x.MaxWeight);                   
+                gameAfterblackMovesLevel1.MaxWeight = gamesAfterwhiteMovesLevel1.Any(x => x.PreviousGameState == gameAfterblackMovesLevel1) ? 
+                    gamesAfterwhiteMovesLevel1.Where(x => x.PreviousGameState == gameAfterblackMovesLevel1).Min(x => x.MaxWeight) : 1000.0;                   
             }
-            var bestGameState = gamesAfterblackMovesLevel1.OrderByDescending(x => x.MaxWeight).First();
-            return bestGameState.LastMove;
+            Game bestGameState = gamesAfterblackMovesLevel1.Any(x => x.MaxWeight != 1000.0) ? 
+                gamesAfterblackMovesLevel1.Where(x => x.MaxWeight != 1000.0).OrderByDescending(x => x.MaxWeight).First() :
+                gamesAfterblackMovesLevel1.Any() ? gamesAfterblackMovesLevel1.First() : null;
+            return bestGameState?.LastMove;
         }
 
         private double GetAllPossibleHunters(Move move, Game game)
         {
-            throw new Exception();
+            var weight = 0.0;
+            if ((game.BlackCheckers.Any(point => point.X == move.DestinationPoint.X - 1 && point.Y == move.DestinationPoint.Y - 1)) &&
+                (move.DestinationPoint.X + 1 <= 7 && move.DestinationPoint.Y + 1 <= 7))
+                if (game.Board.Rows[move.DestinationPoint.Y + 1].Cells[move.DestinationPoint.X + 1].Value == null)
+                    weight++;
+            if ((game.BlackCheckers.Any(point => point.X == move.DestinationPoint.X && point.Y == move.DestinationPoint.Y - 1)) &&
+                (move.DestinationPoint.X <= 7 && move.DestinationPoint.Y + 1 <= 7))
+                if (game.Board.Rows[move.DestinationPoint.Y + 1].Cells[move.DestinationPoint.X].Value == null)
+                    weight++;
+            if ((game.BlackCheckers.Any(point => point.X == move.DestinationPoint.X + 1 && point.Y == move.DestinationPoint.Y - 1)) &&
+                (move.DestinationPoint.X - 1 >= 0 && move.DestinationPoint.Y + 1 <= 7))
+                if (game.Board.Rows[move.DestinationPoint.Y + 1].Cells[move.DestinationPoint.X - 1].Value == null)
+                    weight++;
+            if ((game.BlackCheckers.Any(point => point.X == move.DestinationPoint.X - 1 && point.Y == move.DestinationPoint.Y )) &&
+                (move.DestinationPoint.X + 1 <= 7 && move.DestinationPoint.Y <= 7))
+                if (game.Board.Rows[move.DestinationPoint.Y].Cells[move.DestinationPoint.X + 1].Value == null)
+                    weight++;
+            if ((game.BlackCheckers.Any(point => point.X == move.DestinationPoint.X + 1 && point.Y == move.DestinationPoint.Y)) &&
+                (move.DestinationPoint.X - 1 >= 0 && move.DestinationPoint.Y <= 7))
+                if (game.Board.Rows[move.DestinationPoint.Y].Cells[move.DestinationPoint.X - 1].Value == null)
+                    weight++;
+            if ((game.BlackCheckers.Any(point => point.X == move.DestinationPoint.X - 1 && point.Y == move.DestinationPoint.Y + 1)) &&
+                (move.DestinationPoint.X + 1 <= 7 && move.DestinationPoint.Y - 1 >= 0))
+                if (game.Board.Rows[move.DestinationPoint.Y - 1].Cells[move.DestinationPoint.X + 1].Value == null)
+                    weight++;
+            if ((game.BlackCheckers.Any(point => point.X == move.DestinationPoint.X && point.Y == move.DestinationPoint.Y + 1)) &&
+                (move.DestinationPoint.X <= 7 && move.DestinationPoint.Y - 1 >= 7))
+                if (game.Board.Rows[move.DestinationPoint.Y - 1].Cells[move.DestinationPoint.X].Value == null)
+                    weight++;
+            if ((game.BlackCheckers.Any(point => point.X == move.DestinationPoint.X + 1 && point.Y == move.DestinationPoint.Y + 1)) &&
+                (move.DestinationPoint.X - 1 >= 0 && move.DestinationPoint.Y - 1 >= 7))
+                if (game.Board.Rows[move.DestinationPoint.Y - 1].Cells[move.DestinationPoint.X - 1].Value == null)
+                    weight++;
+            return weight * -5;
         }
 
         private double GetAllPossibleVictims(Move move, Game game)
@@ -135,14 +170,30 @@ namespace Cercheck
                 (move.DestinationPoint.X + 2 <= 7 && move.DestinationPoint.Y + 2 <= 7))
                 if (game.Board.Rows[move.DestinationPoint.Y + 2].Cells[move.DestinationPoint.X + 2].Value == null)
                     weight++;
-            return weight * 5;
+            return weight * 4;
         }
 
         private double CalculateWeight(Move move, Game game)
         {
             var weight = 0.0;
-            //weight += GetAllPossibleHunters(move, game);
+            weight += GetAllPossibleHunters(move, game);
             weight += GetAllPossibleVictims(move, game);
+            var whitePosMoves = game.GetAllPossibleMoves(true).Count;
+            var blackPosMoves = game.GetAllPossibleMoves(false).Count;
+            if (whitePosMoves == 0 && blackPosMoves == 0)
+            {
+                if (game.WhiteCheckers.Count > game.BlackCheckers.Count)
+                    weight += 50;
+                else if (game.WhiteCheckers.Count < game.BlackCheckers.Count)
+                    weight -= 50;
+            }
+            else
+            {
+                if (whitePosMoves == 0)
+                    weight -= 15;
+                if (blackPosMoves == 0)
+                    weight += 15;
+            }
             return weight;
         }
     }

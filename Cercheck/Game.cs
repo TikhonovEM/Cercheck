@@ -30,6 +30,7 @@ namespace Cercheck
 
         private Label WhiteCounter { get; set; }
         private Label BlackCounter { get; set; }
+        private Label Logger { get; set; }
 
         private bool IsWhiteTurn { get; set; } = true;
         public bool IsGameOver { get; set; } = false;
@@ -48,11 +49,12 @@ namespace Cercheck
             return copy;
         }
 
-        public Game(DataGridView board, Label whiteCounter, Label blackCounter)
+        public Game(DataGridView board, Label whiteCounter, Label blackCounter, Label logger)
         {
             Board = board;
             WhiteCounter = whiteCounter;
             BlackCounter = blackCounter;
+            Logger = logger;
         }
         /// <summary>
         /// Перерисовывает игровое поле
@@ -77,6 +79,15 @@ namespace Cercheck
             WhiteCounter.Text = WhiteCheckers.Count.ToString();
             BlackCounter.Text = BlackCheckers.Count.ToString();
             CheckForTheEnd();
+            if (!IsGameOver)
+            {
+                if (GetAllPossibleMoves(true).Count == 0)
+                {
+                    MessageBox.Show("Пропуск хода");
+                    IsWhiteTurn = false;
+                    DoAITurn();
+                }
+            }
         }
         /// <summary>
         /// Сделать ход
@@ -101,6 +112,9 @@ namespace Cercheck
                     var felledChecker = BlackCheckers.Where(p => p.X == felledCoords.X && p.Y == felledCoords.Y).First();
                     BlackCheckers.Remove(felledChecker);
                     IsWhiteTurn = false;
+                    /*Logger.Text += $"\nИгрок ходит с {Board.Columns[startPoint.X].HeaderText + (startPoint.Y + 1).ToString()} " +
+                        $"на {Board.Columns[destinationPoint.X].HeaderText + (destinationPoint.Y + 1).ToString()} " +
+                        $"\nи рубит шашку на {Board.Columns[felledChecker.X].HeaderText + (felledChecker.Y + 1).ToString()}";*/
                 }
                 else
                 {
@@ -110,6 +124,10 @@ namespace Cercheck
                     var felledChecker = WhiteCheckers.Where(p => p.X == felledCoords.X && p.Y == felledCoords.Y).First();
                     WhiteCheckers.Remove(felledChecker);
                     IsWhiteTurn = true;
+                    /*Logger.Text += $"\nКомпьютер ходит с {Board.Columns[startPoint.X].Name + (startPoint.Y + 1).ToString()} " +
+                        $"на {Board.Columns[destinationPoint.X].Name + (destinationPoint.Y + 1).ToString()} " +
+                        $"\nи рубит шашку на {Board.Columns[felledChecker.X].Name + (felledChecker.Y + 1).ToString()}";*/
+                    
                 }
                 LastMove = new Move(startPoint, destinationPoint);
                 if(isNeedRefresh)
@@ -263,7 +281,15 @@ namespace Cercheck
                 var possibleMoves = GetAllPossibleMoves(false);
                 var moveAnalyzer = new MoveAnalyzer(possibleMoves, this);
                 var move = moveAnalyzer.GetBestMove();
-                MakeMove(move.StartPoint, move.DestinationPoint, false, true);
+                if (move == null)
+                {
+                    MessageBox.Show("Компьютер пропускает ход");
+                    IsWhiteTurn = true;
+                }
+                else
+                {
+                    MakeMove(move.StartPoint, move.DestinationPoint, false, true);
+                }
             }
         }
 
